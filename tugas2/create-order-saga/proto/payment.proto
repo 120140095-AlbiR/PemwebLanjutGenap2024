@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package payment;
+
+import "common.proto";
+
+option go_package = "create-order-saga/proto/payment";
+
+// Enum defining possible statuses for a payment.
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0; // Default value
+  SUCCESS = 1;                    // Payment was successfully processed
+  FAILED = 2;                     // Payment processing failed
+  REFUNDED = 3;                   // Payment was successfully refunded
+}
+
+// Represents a payment record.
+message Payment {
+  string id = 1; // Internal payment transaction ID
+  common.OrderID order_id = 2;
+  float amount = 3;
+  PaymentStatus status = 4;
+  string transaction_id = 5; // ID from the payment gateway, if applicable
+  // Add timestamps if needed
+}
+
+// Request message for processing a payment.
+message ProcessPaymentRequest {
+  common.OrderID order_id = 1;
+  common.PaymentInfo payment_info = 2;
+}
+
+// Response message for processing a payment.
+message ProcessPaymentResponse {
+  string payment_id = 1; // The internal ID of the payment record
+  PaymentStatus status = 2; // Will be SUCCESS or FAILED
+  string message = 3; // Optional message (e.g., reason for failure)
+}
+
+// Request message for refunding a payment (compensation).
+message RefundPaymentRequest {
+  common.OrderID order_id = 1;
+  string payment_id = 2; // The internal payment ID to refund
+}
+
+// Response message for refunding a payment (compensation).
+// Using common.CompensationResponse for consistency.
+// message RefundPaymentResponse {
+//   bool success = 1;
+// }
+
+// Service definition for handling payments.
+service PaymentService {
+  // Processes a payment for an order.
+  rpc ProcessPayment(ProcessPaymentRequest) returns (ProcessPaymentResponse);
+
+  // Refunds a previously processed payment (compensation action).
+  rpc RefundPayment(RefundPaymentRequest) returns (common.CompensationResponse);
+
+  // Optional: Add a method to get payment status
+  // rpc GetPaymentStatus(GetPaymentStatusRequest) returns (GetPaymentStatusResponse);
+}

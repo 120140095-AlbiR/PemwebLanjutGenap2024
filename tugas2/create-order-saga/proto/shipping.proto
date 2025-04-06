@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package shipping;
+
+import "common.proto";
+
+option go_package = "create-order-saga/proto/shipping";
+
+// Enum defining possible statuses for a shipment.
+enum ShippingStatus {
+  SHIPPING_STATUS_UNSPECIFIED = 0; // Default value
+  PENDING = 1;                     // Shipping arrangement is pending
+  SHIPPED = 2;                     // Order has been shipped
+  CANCELLED = 3;                   // Shipping arrangement was cancelled
+}
+
+// Represents a shipment record.
+message Shipment {
+  string id = 1; // Internal shipment ID
+  common.OrderID order_id = 2;
+  common.ShippingAddress address = 3;
+  ShippingStatus status = 4;
+  string tracking_number = 5; // Tracking number from the carrier, if available
+  // Add timestamps if needed
+}
+
+// Request message for arranging shipping.
+message ArrangeShippingRequest {
+  common.OrderID order_id = 1;
+  common.ShippingAddress address = 2;
+}
+
+// Response message for arranging shipping.
+message ArrangeShippingResponse {
+  string shipment_id = 1; // The internal ID of the shipment record
+  ShippingStatus status = 2; // Will be PENDING initially
+}
+
+// Request message for cancelling shipping (compensation).
+message CancelShippingRequest {
+  common.OrderID order_id = 1;
+  string shipment_id = 2; // The internal shipment ID to cancel
+}
+
+// Response message for cancelling shipping (compensation).
+// Using common.CompensationResponse for consistency.
+// message CancelShippingResponse {
+//   bool success = 1;
+// }
+
+// Service definition for handling shipping.
+service ShippingService {
+  // Arranges shipping for an order.
+  rpc ArrangeShipping(ArrangeShippingRequest) returns (ArrangeShippingResponse);
+
+  // Cancels a previously arranged shipment (compensation action).
+  rpc CancelShipping(CancelShippingRequest) returns (common.CompensationResponse);
+
+  // Optional: Add a method to get shipping status
+  // rpc GetShippingStatus(GetShippingStatusRequest) returns (GetShippingStatusResponse);
+}

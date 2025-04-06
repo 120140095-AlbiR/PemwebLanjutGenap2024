@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package order;
+
+import "common.proto";
+
+option go_package = "create-order-saga/proto/order";
+
+// Enum defining possible statuses for an order.
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0; // Default value, should not be used explicitly
+  PENDING = 1;                  // Order created, awaiting payment/shipping
+  COMPLETED = 2;                // Order successfully processed (paid and shipped)
+  CANCELLED = 3;                // Order was cancelled (due to failure or explicit request)
+}
+
+// Represents an order within the system.
+message Order {
+  string id = 1;
+  string user_id = 2;
+  repeated common.Item items = 3;
+  float total_amount = 4;
+  OrderStatus status = 5;
+  // Add timestamps (created_at, updated_at) if needed
+}
+
+// Request message for creating an order.
+message CreateOrderRequest {
+  common.OrderDetails details = 1;
+}
+
+// Response message for creating an order.
+message CreateOrderResponse {
+  common.OrderID order_id = 1;
+  OrderStatus status = 2; // Will be PENDING
+}
+
+// Request message for cancelling an order (compensation).
+message CancelOrderRequest {
+  common.OrderID order_id = 1;
+}
+
+// Request message for completing an order.
+message CompleteOrderRequest {
+  common.OrderID order_id = 1;
+}
+
+// Response message for cancelling an order (compensation).
+// Using common.CompensationResponse for consistency.
+// message CancelOrderResponse {
+//   bool success = 1;
+// }
+
+// Service definition for managing orders.
+service OrderService {
+  // Creates a new order (initiates the saga step).
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+
+  // Cancels an existing order (compensation action).
+  rpc CancelOrder(CancelOrderRequest) returns (common.CompensationResponse);
+
+  // Optional: Add a method to explicitly mark an order as completed
+  // rpc CompleteOrder(CompleteOrderRequest) returns (CompleteOrderResponse);
+
+  // Optional: Add a method to get order status
+  // rpc GetOrderStatus(GetOrderStatusRequest) returns (GetOrderStatusResponse);
+
+  // Marks an order as completed after the saga succeeds.
+  rpc CompleteOrder(CompleteOrderRequest) returns (common.CompensationResponse);
+}

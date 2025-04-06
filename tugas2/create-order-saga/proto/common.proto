@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "create-order-saga/proto/common";
+
+// Represents a unique order identifier.
+message OrderID {
+  string id = 1;
+}
+
+// Represents basic order details, potentially used for initiation.
+message OrderDetails {
+  string user_id = 1;
+  repeated Item items = 2;
+  // Add other relevant details like total amount, currency etc.
+}
+
+// Represents an item in an order.
+message Item {
+  string product_id = 1;
+  int32 quantity = 2;
+  float price = 3;
+}
+
+// Represents payment information.
+message PaymentInfo {
+  string card_number = 1; // Example, use secure methods in reality
+  string expiry_date = 2;
+  string cvv = 3;
+  float amount = 4;
+}
+
+// Represents shipping address.
+message ShippingAddress {
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string zip_code = 4;
+  string country = 5;
+}
+
+// Represents a generic response for compensation actions.
+message CompensationResponse {
+  bool success = 1;
+  string message = 2; // Optional message for success/failure
+}
